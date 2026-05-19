@@ -1,20 +1,24 @@
 name: Semgrep SAST
 
 on:
-  push:
-    branches: [ "main" ]
   pull_request:
-    branches: [ "main" ]
+    branches: [ "master", "main" ] # Cubre tanto si tu rama se llama master como main
 
 jobs:
   semgrep:
-    name: Escaneo de Seguridad
+    name: Escaneo de Seguridad (Última versión)
     runs-on: ubuntu-latest
+    
     steps:
       - name: Clonar el repositorio
         uses: actions/checkout@v4
 
-      - name: Ejecutar Semgrep
-        uses: returntocorp/semgrep-action@v1
-        with:
-          config: "p/owasp-top-ten"
+      - name: Instalar la última versión de Semgrep
+        run: |
+          python -m pip install --upgrade pip
+          pip install semgrep
+          semgrep --version
+
+      - name: Ejecutar Semgrep y forzar error (Reglas OWASP + PHP)
+        # Añadimos p/php para garantizar que la regla de eval() salte críticamente
+        run: semgrep scan --config="p/owasp-top-ten" --config="p/php" --error
